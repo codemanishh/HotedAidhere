@@ -1,0 +1,10 @@
+project_id = "rqxxiljcjrdlrfrywwdg"
+
+[functions.setup-admin]
+verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false
+
+[functions.moderate-comment]
+verify_jwt = false
