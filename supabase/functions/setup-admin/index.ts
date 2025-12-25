@@ -22,7 +22,7 @@ serve(async (req) => {
       },
     });
 
-    const adminEmail = "codemanishh@admin.local";
+    const adminEmail = "codemanishh@gmail.com";
     const adminPassword = "codemanishh";
 
     // Check if user already exists
