@@ -19,8 +19,11 @@ import {
   Briefcase,
   GraduationCap,
   Clock,
-  MessageCircle
+  MessageCircle,
+  Share2,
+  IndianRupee
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow, format } from "date-fns";
 
 // Normalize job text blocks: trim, remove URLs/"Apply Link" lines, de-duplicate, and limit blank lines
@@ -55,6 +58,38 @@ const JobDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: job, isLoading, error } = useJob(slug || "");
   const { data: recommendedJobs } = useRecommendedJobs(job || null);
+  const { toast } = useToast();
+
+  const handleShareJob = () => {
+    if (!job) return;
+    
+    const siteUrl = window.location.origin;
+    const jobUrl = `${siteUrl}/jobs/${job.slug}`;
+    
+    const shareMessage = `🚀 *${job.company_name} Hiring ${job.experience === 'Fresher' ? 'Freshers' : job.experience}*
+
+👤 *Profile:* ${job.job_role}
+🎓 *Qualification:* ${job.qualification}
+🧑‍💼 *Experience:* ${job.experience}
+📍 *Location:* ${job.location}${job.salary ? `\n💰 *Salary:* ${job.salary}` : ''}
+
+🔗 *Apply Now:* ${jobUrl}
+
+💖🙌 Share with your besties 🙌❤️`;
+
+    navigator.clipboard.writeText(shareMessage).then(() => {
+      toast({
+        title: "Copied to Clipboard!",
+        description: "Job details ready to share with your communities.",
+      });
+    }).catch(() => {
+      toast({
+        title: "Copy Failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    });
+  };
 
   if (isLoading) {
     return (
@@ -207,7 +242,7 @@ const JobDetail = () => {
                   <p className="font-semibold text-sm text-foreground truncate">{job.company_name}</p>
                 </div>
                 <div className="bg-card rounded-xl border border-border/50 p-4 text-center shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all">
-                  <MapPin className="h-5 w-5 text-accent mx-auto mb-2" />
+                  <MapPin className="h-5 w-5 text-primary mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">Location</p>
                   <p className="font-semibold text-sm text-foreground truncate">{job.location}</p>
                 </div>
@@ -217,7 +252,7 @@ const JobDetail = () => {
                   <p className="font-semibold text-sm text-foreground truncate">{job.experience}</p>
                 </div>
                 <div className="bg-card rounded-xl border border-border/50 p-4 text-center shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all">
-                  <Sparkles className="h-5 w-5 text-accent mx-auto mb-2" />
+                  <IndianRupee className="h-5 w-5 text-success mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">Salary</p>
                   <p className="font-semibold text-sm text-foreground truncate">{job.salary || "Best in Industry"}</p>
                 </div>
@@ -302,16 +337,27 @@ const JobDetail = () => {
                   </p>
                 </div>
                 
-                <Button 
-                  asChild 
-                  size="lg" 
-                  className="bg-gradient-to-r from-success to-accent hover:opacity-90 text-success-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                >
-                  <a href={job.apply_link} target="_blank" rel="noopener noreferrer">
-                    Apply Now
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    asChild 
+                    size="lg" 
+                    className="bg-gradient-to-r from-success to-accent hover:opacity-90 text-success-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                  >
+                    <a href={job.apply_link} target="_blank" rel="noopener noreferrer">
+                      Apply Now
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    onClick={handleShareJob}
+                    className="border-primary text-primary hover:bg-primary/10 shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share Job
+                  </Button>
+                </div>
               </div>
 
               {/* Follow Me CTA */}

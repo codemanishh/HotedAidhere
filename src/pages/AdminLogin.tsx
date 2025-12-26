@@ -47,7 +47,7 @@ const AdminLogin = () => {
 
     try {
       // Convert username to email format for Supabase auth
-      const email = username.includes("@") ? username : `${username}@gmail.com`;
+      const email = username.includes("@") ? username : `${username}@admin.local`;
       
       const { error } = await signIn(email, password);
       if (error) {

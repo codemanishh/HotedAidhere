@@ -43,7 +43,8 @@ import {
   XCircle,
   User,
   Wand2,
-  Pencil
+  Pencil,
+  Share2
 } from "lucide-react";
 import { format } from "date-fns";
 import { JobFormData, ExperienceLevel, Job } from "@/types/job";
@@ -305,6 +306,35 @@ const AdminDashboard = () => {
       .join("\n")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
+  };
+
+  const handleShareJob = (job: Job) => {
+    const siteUrl = window.location.origin;
+    const jobUrl = `${siteUrl}/jobs/${job.slug}`;
+    
+    const shareMessage = `🚀 *${job.company_name} Hiring ${job.experience === 'Fresher' ? 'Freshers' : job.experience}*
+
+👤 *Profile:* ${job.job_role}
+🎓 *Qualification:* ${job.qualification}
+🧑‍💼 *Experience:* ${job.experience}
+📍 *Location:* ${job.location}${job.salary ? `\n💰 *Salary:* ${job.salary}` : ''}
+
+🔗 *Apply Now:* ${jobUrl}
+
+💖🙌 Share with your besties 🙌❤️`;
+
+    navigator.clipboard.writeText(shareMessage).then(() => {
+      toast({
+        title: "Copied to Clipboard!",
+        description: "Job details ready to share with your communities.",
+      });
+    }).catch(() => {
+      toast({
+        title: "Copy Failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -675,6 +705,7 @@ const AdminDashboard = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Job Title</TableHead>
+                    <TableHead className="w-[60px]">Share</TableHead>
                     <TableHead>Company</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Created</TableHead>
@@ -689,6 +720,16 @@ const AdminDashboard = () => {
                     return (
                       <TableRow key={job.id}>
                         <TableCell className="font-medium">{job.job_role}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-primary hover:text-primary hover:bg-primary/10"
+                            onClick={() => handleShareJob(job)}
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                         <TableCell>{job.company_name}</TableCell>
                         <TableCell>{job.location}</TableCell>
                         <TableCell>{format(new Date(job.created_at), 'MMM d, yyyy')}</TableCell>
