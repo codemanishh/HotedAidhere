@@ -60,7 +60,7 @@ const JobDetail = () => {
   const { data: recommendedJobs } = useRecommendedJobs(job || null);
   const { toast } = useToast();
 
-  const handleShareJob = () => {
+  const handleShareJob = async () => {
     if (!job) return;
     
     const siteUrl = window.location.origin;
@@ -77,18 +77,37 @@ const JobDetail = () => {
 
 💖🙌 Share with your besties 🙌❤️`;
 
-    navigator.clipboard.writeText(shareMessage).then(() => {
-      toast({
-        title: "Copied to Clipboard!",
-        description: "Job details ready to share with your communities.",
+    // Check if mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Use Web Share API only on mobile
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({
+          title: `${job.company_name} - ${job.job_role}`,
+          text: shareMessage,
+          url: jobUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Share failed:', err);
+        }
+      }
+    } else {
+      // Clipboard for desktop/tablet
+      navigator.clipboard.writeText(shareMessage).then(() => {
+        toast({
+          title: "Copied to Clipboard!",
+          description: "Job details ready to share with your communities.",
+        });
+      }).catch(() => {
+        toast({
+          title: "Copy Failed",
+          description: "Please try again.",
+          variant: "destructive",
+        });
       });
-    }).catch(() => {
-      toast({
-        title: "Copy Failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    });
+    }
   };
 
   if (isLoading) {
@@ -203,16 +222,26 @@ const JobDetail = () => {
               {/* Job Title Card */}
               <div className="mb-6 bg-card rounded-2xl border border-border/50 p-6 shadow-card animate-slide-up overflow-hidden relative">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-primary" />
+                
+                {/* Mobile: Logo centered at top */}
+                <div className="flex justify-center mb-4 sm:hidden">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl blur-lg" />
+                    <CompanyLogo companyName={job.company_name} size="lg" className="relative" />
+                  </div>
+                </div>
+                
                 <div className="flex items-start gap-4">
+                  {/* Desktop: Logo on left */}
                   <div className="relative flex-shrink-0 hidden sm:block">
                     <div className="absolute inset-0 bg-primary/10 rounded-xl blur-lg" />
                     <CompanyLogo companyName={job.company_name} size="lg" className="relative" />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 text-center sm:text-left">
                     <h1 className="font-display text-xl font-bold text-foreground md:text-2xl mb-2">
                       {job.company_name} Recruitment 2025 | {job.job_role} | {job.location}
                     </h1>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
                         {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}

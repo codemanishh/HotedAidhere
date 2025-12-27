@@ -308,7 +308,7 @@ const AdminDashboard = () => {
       .trim();
   };
 
-  const handleShareJob = (job: Job) => {
+  const handleShareJob = async (job: Job) => {
     const siteUrl = window.location.origin;
     const jobUrl = `${siteUrl}/jobs/${job.slug}`;
     
@@ -323,18 +323,37 @@ const AdminDashboard = () => {
 
 💖🙌 Share with your besties 🙌❤️`;
 
-    navigator.clipboard.writeText(shareMessage).then(() => {
-      toast({
-        title: "Copied to Clipboard!",
-        description: "Job details ready to share with your communities.",
+    // Check if mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Use Web Share API only on mobile
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({
+          title: `${job.company_name} - ${job.job_role}`,
+          text: shareMessage,
+          url: jobUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Share failed:', err);
+        }
+      }
+    } else {
+      // Clipboard for desktop/tablet
+      navigator.clipboard.writeText(shareMessage).then(() => {
+        toast({
+          title: "Copied to Clipboard!",
+          description: "Job details ready to share with your communities.",
+        });
+      }).catch(() => {
+        toast({
+          title: "Copy Failed",
+          description: "Please try again.",
+          variant: "destructive",
+        });
       });
-    }).catch(() => {
-      toast({
-        title: "Copy Failed",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -436,80 +455,81 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Briefcase className="h-5 w-5" />
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <span className="font-display text-xl font-bold text-foreground">
+            <span className="font-display text-base sm:text-xl font-bold text-foreground">
               Admin Dashboard
             </span>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button variant="ghost" size="sm" asChild className="px-2 sm:px-4">
               <Link to="/admin/profile">
-                <User className="mr-2 h-4 w-4" />
-                Profile
+                <User className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Profile</span>
               </Link>
             </Button>
-            <Button variant="ghost" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="px-2 sm:px-4">
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container py-8">
+      <main className="container py-4 sm:py-8 px-4">
         {/* Stats */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <div className="mb-6 sm:mb-8 grid grid-cols-3 gap-2 sm:gap-4">
           <Card className="border-border shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Jobs
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Active
               </CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-success" />
+              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-success" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{stats.activeJobs}</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <div className="text-xl sm:text-3xl font-bold text-foreground">{stats.activeJobs}</div>
             </CardContent>
           </Card>
           
           <Card className="border-border shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Expired Jobs
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Expired
               </CardTitle>
-              <Clock className="h-4 w-4 text-warning" />
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-warning" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{stats.expiredJobs}</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <div className="text-xl sm:text-3xl font-bold text-foreground">{stats.expiredJobs}</div>
             </CardContent>
           </Card>
           
           <Card className="border-border shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Jobs
+            <CardHeader className="flex flex-row items-center justify-between pb-1 sm:pb-2 p-3 sm:p-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Total
               </CardTitle>
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{stats.totalJobs}</div>
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <div className="text-xl sm:text-3xl font-bold text-foreground">{stats.totalJobs}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Actions */}
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-display text-2xl font-bold text-foreground">All Jobs</h2>
+        <div className="mb-4 sm:mb-6 flex items-center justify-between">
+          <h2 className="font-display text-lg sm:text-2xl font-bold text-foreground">All Jobs</h2>
           
           <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
             <DialogTrigger asChild>
-              <Button variant="default">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Job
+              <Button variant="default" size="sm" className="sm:size-default">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Create Job</span>
+                <span className="sm:hidden">Add</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
@@ -687,59 +707,75 @@ const AdminDashboard = () => {
           </Dialog>
         </div>
 
-        {/* Jobs Table */}
+        {/* Jobs List */}
         <Card className="border-border shadow-card">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-8">
+              <div className="p-4 sm:p-8">
                 <Skeleton className="h-64 w-full" />
               </div>
             ) : jobs.length === 0 ? (
-              <div className="p-12 text-center">
-                <Briefcase className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                <h3 className="mb-2 font-display text-lg font-bold text-foreground">No Jobs Yet</h3>
-                <p className="text-muted-foreground">Create your first job posting to get started.</p>
+              <div className="p-8 sm:p-12 text-center">
+                <Briefcase className="mx-auto mb-4 h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />
+                <h3 className="mb-2 font-display text-base sm:text-lg font-bold text-foreground">No Jobs Yet</h3>
+                <p className="text-sm text-muted-foreground">Create your first job posting to get started.</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Job Title</TableHead>
-                    <TableHead className="w-[60px]">Share</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile Card View */}
+                <div className="block sm:hidden divide-y divide-border">
                   {jobs.map((job) => {
                     const isExpired = new Date(job.expires_at) <= new Date();
                     return (
-                      <TableRow key={job.id}>
-                        <TableCell className="font-medium">{job.job_role}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-primary hover:text-primary hover:bg-primary/10"
-                            onClick={() => handleShareJob(job)}
-                          >
-                            <Share2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                        <TableCell>{job.company_name}</TableCell>
-                        <TableCell>{job.location}</TableCell>
-                        <TableCell>{format(new Date(job.created_at), 'MMM d, yyyy')}</TableCell>
-                        <TableCell>{format(new Date(job.expires_at), 'MMM d, yyyy')}</TableCell>
-                        <TableCell>
+                      <div key={job.id} className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm text-foreground truncate">{job.job_role}</h3>
+                            <p className="text-xs text-muted-foreground truncate">{job.company_name}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                              onClick={() => handleShareJob(job)}
+                            >
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                              onClick={() => handleEdit(job)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => deleteJob(job.id)}
+                              disabled={isDeleting}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span>{job.location}</span>
+                          <span>•</span>
+                          <span>{format(new Date(job.created_at), 'MMM d')}</span>
+                          <span>→</span>
+                          <span>{format(new Date(job.expires_at), 'MMM d')}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
                           <Select
                             value={job.is_active ? "active" : "inactive"}
                             onValueChange={(value) => toggleJobStatus({ jobId: job.id, isActive: value === "active" })}
                           >
-                            <SelectTrigger className={`w-[120px] h-8 text-xs ${job.is_active ? 'border-success/50 text-success' : 'border-destructive/50 text-destructive'}`}>
+                            <SelectTrigger className={`w-[100px] h-7 text-xs ${job.is_active ? 'border-success/50 text-success' : 'border-destructive/50 text-destructive'}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -758,35 +794,106 @@ const AdminDashboard = () => {
                             </SelectContent>
                           </Select>
                           {isExpired && (
-                            <span className="text-[10px] text-warning block mt-1">Expired</span>
+                            <Badge variant="outline" className="text-[10px] text-warning border-warning/50">
+                              Expired
+                            </Badge>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-primary hover:text-primary hover:bg-primary/10"
-                              onClick={() => handleEdit(job)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => deleteJob(job.id)}
-                              disabled={isDeleting}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </div>
                     );
                   })}
-                </TableBody>
-              </Table>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Job Title</TableHead>
+                        <TableHead className="w-[60px]">Share</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Expires</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="w-[100px]">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {jobs.map((job) => {
+                        const isExpired = new Date(job.expires_at) <= new Date();
+                        return (
+                          <TableRow key={job.id}>
+                            <TableCell className="font-medium">{job.job_role}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-primary hover:text-primary hover:bg-primary/10"
+                                onClick={() => handleShareJob(job)}
+                              >
+                                <Share2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                            <TableCell>{job.company_name}</TableCell>
+                            <TableCell>{job.location}</TableCell>
+                            <TableCell>{format(new Date(job.created_at), 'MMM d, yyyy')}</TableCell>
+                            <TableCell>{format(new Date(job.expires_at), 'MMM d, yyyy')}</TableCell>
+                            <TableCell>
+                              <Select
+                                value={job.is_active ? "active" : "inactive"}
+                                onValueChange={(value) => toggleJobStatus({ jobId: job.id, isActive: value === "active" })}
+                              >
+                                <SelectTrigger className={`w-[120px] h-8 text-xs ${job.is_active ? 'border-success/50 text-success' : 'border-destructive/50 text-destructive'}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="active">
+                                    <span className="flex items-center gap-1">
+                                      <CheckCircle2 className="h-3 w-3 text-success" />
+                                      Active
+                                    </span>
+                                  </SelectItem>
+                                  <SelectItem value="inactive">
+                                    <span className="flex items-center gap-1">
+                                      <XCircle className="h-3 w-3 text-destructive" />
+                                      Inactive
+                                    </span>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {isExpired && (
+                                <span className="text-[10px] text-warning block mt-1">Expired</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-primary hover:text-primary hover:bg-primary/10"
+                                  onClick={() => handleEdit(job)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => deleteJob(job.id)}
+                                  disabled={isDeleting}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

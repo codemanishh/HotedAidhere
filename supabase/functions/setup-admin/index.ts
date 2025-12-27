@@ -34,6 +34,18 @@ serve(async (req) => {
     if (existingAdmin) {
       userId = existingAdmin.id;
       console.log("Admin user already exists:", userId);
+      
+      // Reset password for existing admin
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        { password: adminPassword }
+      );
+      
+      if (updateError) {
+        console.error("Failed to reset password:", updateError.message);
+      } else {
+        console.log("Password reset successfully for admin user");
+      }
     } else {
       // Create the admin user
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
