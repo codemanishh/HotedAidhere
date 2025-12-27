@@ -9,6 +9,7 @@ import { useJob, useRecommendedJobs } from "@/hooks/useJobs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CompanyLogo } from "@/components/ui/company-logo";
+import { getCompanyLogoUrl } from "@/lib/companyLogos";
 import { 
   ExternalLink,
   ArrowLeft,
@@ -183,6 +184,7 @@ const JobDetail = () => {
         description={jobDescription}
         keywords={`${job.job_role}, ${job.company_name} jobs, ${job.location} jobs, ${job.experience}, fresher jobs 2025, ${job.skills_required.split(',').slice(0, 3).join(', ')}, entry level jobs`}
         canonicalUrl={`${window.location.origin}/jobs/${job.slug}`}
+        ogImage={getCompanyLogoUrl(job.company_name)}
         ogType="article"
         publishedTime={job.created_at}
         breadcrumbs={breadcrumbs}
